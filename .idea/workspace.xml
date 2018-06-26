@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ab29e19c-1ec2-4f46-a23d-5bca7223b754" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/grammatical-analysis/js/analysis.js" beforeDir="false" afterPath="$PROJECT_DIR$/grammatical-analysis/js/analysis.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lexical-analysis/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/lexical-analysis/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lexical-analysis/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/lexical-analysis/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lexical-analysis/js/analysis.js" beforeDir="false" afterPath="$PROJECT_DIR$/lexical-analysis/js/analysis.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -28,13 +25,14 @@
       <file leaf-file-name="analysis.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/grammatical-analysis/js/analysis.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="430">
-              <caret line="133" column="13" lean-forward="true" selection-start-line="133" selection-start-column="13" selection-end-line="133" selection-end-column="13" />
+            <state relative-caret-position="-51">
+              <caret line="56" column="31" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
               <folding>
-                <element signature="e#332#778#0" />
                 <element signature="e#2330#2911#0" />
                 <element signature="e#2278#2294#0" />
+                <element signature="e#2318#2619#0" />
                 <element signature="e#2739#2807#0" />
+                <element signature="e#3573#4466#0" />
               </folding>
             </state>
           </provider>
@@ -52,6 +50,7 @@
       <find>isUpper</find>
       <find>genGrammar</find>
       <find>trim</find>
+      <find>handleFIRST</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -204,12 +203,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1529917153511</updated>
-      <workItem from="1529917154885" duration="12212000" />
+      <workItem from="1529917154885" duration="15514000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="12212000" />
+    <option name="totallyTimeSpent" value="15514000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
@@ -329,13 +328,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/grammatical-analysis/js/analysis.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="430">
-          <caret line="133" column="13" lean-forward="true" selection-start-line="133" selection-start-column="13" selection-end-line="133" selection-end-column="13" />
+        <state relative-caret-position="-51">
+          <caret line="56" column="31" selection-start-line="56" selection-start-column="31" selection-end-line="56" selection-end-column="31" />
           <folding>
-            <element signature="e#332#778#0" />
             <element signature="e#2330#2911#0" />
             <element signature="e#2278#2294#0" />
+            <element signature="e#2318#2619#0" />
             <element signature="e#2739#2807#0" />
+            <element signature="e#3573#4466#0" />
           </folding>
         </state>
       </provider>

@@ -52,9 +52,9 @@ function analyse(){  // 开始分析
    grammar.unshift({key: 'S\'', value: grammar[0]['key'], dot: 0}); //添加一句初始状态S'到初态的文法
    console.log(grammar);
 
-   collectSign();  //暂时规定大写字母为非终结符，小写字母为终结符
-   handleFIRST();
-   handleFOLLOW();
+   collectSign();  // 收集所有的终结符和非终结符，暂时规定大写字母为非终结符，小写字母为终结符
+   handleFIRST();   //获取first集
+   handleFOLLOW();  //获取follow集
 
    addLog('---拓广文法----');
    for(let i = 0; i < grammar.length; i++){  // 日志打印拓广文法
@@ -130,7 +130,7 @@ function collectSign(){  // 收集所有的终结符和非终结符
             if(isUpper(c)){
                 unterminalSymbols.add(c);
             }else{
-                terminalSymbols.add(c);
+                terminalSymbols.add(c);  //把大写字母作为非终结符
             }
         }
     } //这里好像没有把初始符号S'加入到非终结符集合中
@@ -143,6 +143,109 @@ function isUpper(word){  // 是否是终结符
     return regex.test(word);
 }
 
+
+//获取first集，e表示空
+function handleFIRST(){
+    first['S\''] = [];
+    for(let sign of unterminalSymbols){
+        first[sign] = []  //为每个非终结符创建一个first集
+    }
+    let flag = true;  //设置结束循环的标志位
+    while(flag){
+        flag = false;
+        for(let g of grammar){     //对每一句文法进行遍历
+            let pos = 0;  //遍历文法右部的指针赋初值为0
+            while(pos < g['value'].length){   //对右部符号进行遍历
+                if(isUpper(g['value'][pos])){  // A->·BC, 把FIRST(B)加入FIRST(A) 若右部第一个为非终结符，则把它的first加入到当前符号的first中
+                    for(let f of first[g['value'][pos]]){  //对右部第一个非终结符的first集合进行遍历
+                        if(!first[g['key']].includes(f) && f != 'e'){ //若当前first集中没有f，并且f不为空，则添加
+                            first[g['key']].push(f);
+                            flag = true;  //并且继续下一个循环
+                        }
+                    }
+                    if(first[g['value'][pos]].includes('e')){  // 若FIRST(B)包含epsilon,则需遍历B的后一个符号，否则结束遍历
+                        pos += 1;
+                    }else{
+                        break;
+                    }
+                }else{  // 若右部第一个为终结符，则把它加入到当前符号的first中，A->a, 把a加入到FIRST(A)
+                    if(!first[g['key']].includes(g['value'][pos])){
+                        first[g['key']].push(g['value'][pos]);
+                        flag = true;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    console.log(first);
+}
+
+//获取follow集
+function handleFOLLOW(){
+    follow['S\''] = ['#'];
+    for(let sign of unterminalSymbols){
+        follow[sign] = []
+    }
+    let flag  = true;
+    while(flag){
+        flag = false;
+        for(g of grammar){
+            let pos = 0;  // 找到非终结符
+            let ppos= 0;  // 找到非终结符后的其他终结符
+            while(pos < g['value'].length){  //
+                if(isUpper(g['value'][pos])){
+                    ppos = pos+1;
+                    if(ppos == g['value'].length){
+                        for(let f of follow[g['key']]){
+                            if(!follow[g['value'][pos]].includes(f)){
+                                follow[g['value'][pos]].push(f);
+                                flag = true;
+                            }
+                        }
+                        break;
+                    }
+                    while(ppos < g['value'].length){
+                        if(isUpper(g['value'][ppos])){
+                            for(let f of first[g['value'][ppos]]){
+                                if(!follow[g['value'][pos]].includes(f) && f != 'e'){
+                                    follow[g['value'][pos]].push(f);
+                                    flag = true;
+                                }
+                            }
+                            if(first[g['value'][ppos]].includes('e')){
+                                ppos += 1;
+                            }else{
+                                pos += 1;
+                                break;
+                            }
+                        }else{
+                            if(!follow[g['value'][pos]].includes(g['value'][ppos])){
+                                follow[g['value'][pos]].push(g['value'][ppos]);
+                                flag = true;
+                            }
+                            pos += 1;
+                            break;
+                        }
+
+                        if(ppos == g['value'].length){  // A->αB 或  A->αBβ 且 β=>e
+                            for(let f of follow[g['key']]){
+                                if(!follow[g['value'][pos]].includes(f)){
+                                    follow[g['value'][pos]].push(f);
+                                    flag = true;
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    pos += 1;
+                }
+            }
+        }
+    }
+    console.log(follow);
+}
 
 
 
@@ -333,106 +436,7 @@ function showFOLLOW(){
   followElement.innerHTML = followHTML;
 }
 
-function handleFIRST(){
-  first['S\''] = [];
-  for(let sign of unterminalSymbols){
-    first[sign] = []
-  }
-  let flag = true;
-  while(flag){
-    flag = false;
-    for(let g of grammar){
-      let pos = 0;
-      while(pos < g['value'].length){
-        if(isUpper(g['value'][pos])){  // A->·BC, 把FIRST(B)加入FIRST(A)
-          for(let f of first[g['value'][pos]]){
-            if(!first[g['key']].includes(f) && f != 'e'){
-              first[g['key']].push(f);
-              flag = true;
-            }
-          }
-          if(first[g['value'][pos]].includes('e')){  // FIRST(B)包含epsilon,则把看C
-            pos += 1;
-          }else{
-            break;
-          }
-        }else{  // A->a, 把a加入到FIRST(A)
-          if(!first[g['key']].includes(g['value'][pos])){
-            first[g['key']].push(g['value'][pos]);
-            flag = true;
-          }
-          break;
-        }
-      }
-    }
-  }
 
-  console.log(first);
-}
-
-function handleFOLLOW(){
-  follow['S\''] = ['#'];
-  for(let sign of unterminalSymbols){
-    follow[sign] = []
-  }
-  let flag  = true;
-  while(flag){
-    flag = false;
-    for(g of grammar){
-      let pos = 0;  // 找到非终结符
-      let ppos= 0;  // 找到非终结符后的其他终结符
-      while(pos < g['value'].length){  //
-        if(isUpper(g['value'][pos])){
-          ppos = pos+1;
-          if(ppos == g['value'].length){
-            for(let f of follow[g['key']]){
-              if(!follow[g['value'][pos]].includes(f)){
-                follow[g['value'][pos]].push(f);
-                flag = true;
-              }
-            }
-            break;
-          }
-          while(ppos < g['value'].length){
-            if(isUpper(g['value'][ppos])){
-              for(let f of first[g['value'][ppos]]){
-                if(!follow[g['value'][pos]].includes(f) && f != 'e'){
-                  follow[g['value'][pos]].push(f);
-                  flag = true;
-                }
-              }
-              if(first[g['value'][ppos]].includes('e')){
-                ppos += 1;
-              }else{
-                pos += 1;
-                break;
-              }
-            }else{
-              if(!follow[g['value'][pos]].includes(g['value'][ppos])){
-                follow[g['value'][pos]].push(g['value'][ppos]);
-                flag = true;
-              }
-              pos += 1;
-              break;
-            }
-
-            if(ppos == g['value'].length){  // A->αB 或  A->αBβ 且 β=>e
-              for(let f of follow[g['key']]){
-                if(!follow[g['value'][pos]].includes(f)){
-                  follow[g['value'][pos]].push(f);
-                  flag = true;
-                }
-              }
-            }
-          }
-        }else{
-          pos += 1;
-        }
-      }
-    }
-  }
-  console.log(follow);
-}
 
 
 // 显示项目集规范族的DFA图像
