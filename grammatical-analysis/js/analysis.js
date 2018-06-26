@@ -1,29 +1,29 @@
-let grammar = []  // 文法
-let lang = ''  // 语言
-let itemSet = []  // 项目集
-let itemfamily = []  // 项目规范族
+let grammar = [];  // 文法
+let lang = '';  // 语言
+let itemSet = [];  // 项目集
+let itemfamily = [];  // 项目规范族
 
 let terminalSymbols = new Set();  // 终结符
 let unterminalSymbols = new Set();  // 非终结符
 let first = {};  // FIRST集
 let follow = {};  // FOLLOW集
-let goMap = []  // Go函数
-let log = ''  // 日志
-let ACTION = []
-let GOTO = []
+let goMap = [];  // Go函数
+let log = '';  // 日志
+let ACTION = [];
+let GOTO = [];
 
 function init(){
-  grammar = []  // 文法
+  grammar = [];  // 文法
   lang = '';
-  itemSet = []  // 项目集
-  itemfamily = []  // 项目规范族
+  itemSet = [];  // 项目集
+  itemfamily = []; // 项目规范族
 
   terminalSymbols = new Set();  // 终结符
   unterminalSymbols = new Set();  // 非终结符
-  goMap = []  // Go函数
-  log = ''  // 日志
-  ACTION = []
-  GOTO = []
+  goMap = [];  // Go函数
+  log = '';  // 日志
+  ACTION = [];  //动作表
+  GOTO = [];  //goto表
   document.getElementById('process').innerHTML = '';
   document.getElementById('sheet').innerHTML = '';
   document.getElementById('first').innerHTML = '';
@@ -32,26 +32,27 @@ function init(){
 
 }
 
-function analyse(){  // 开始分析
-  init();
-   grammarRaw = document.getElementById('grammar').value;
-   lang = document.getElementById('lang').value;
 
-   let lines = grammarRaw.split('\n')
+function analyse(){  // 开始分析
+   init();
+   grammarRaw = document.getElementById('grammar').value;  //获取文法
+   lang = document.getElementById('lang').value;  //获取要分析的代码
+
+   let lines = grammarRaw.split('\n');  //
 
    for(let i = 0; i<lines.length; i++){  // 分析文法
-     tempGrammar = genGrammar(lines[i])
+     tempGrammar = genGrammar(lines[i]);
      if(!tempGrammar){
-       showLog();
+       showLog(); //显示简单的日志，不过好像没必要
        return
      }
-     grammar = grammar.concat(tempGrammar)
+     grammar = grammar.concat(tempGrammar) //将每一句文法存入数组中
    }
 
-   grammar.unshift({key: 'S\'', value: grammar[0]['key'], dot: 0});
+   grammar.unshift({key: 'S\'', value: grammar[0]['key'], dot: 0}); //添加一句初始状态S'到初态的文法
    console.log(grammar);
 
-   collectSign();
+   collectSign();  //暂时规定大写字母为非终结符，小写字母为终结符
    handleFIRST();
    handleFOLLOW();
 
@@ -88,6 +89,64 @@ function analyse(){  // 开始分析
    showSLRSheet();
    showProcess();
 }
+
+function genGrammar(str){  // 把文法字符串转换成类似结构{'S': 'aBc'}
+    console.log(str);
+    let temp = str.split('->');
+
+    if(temp.length !== 2){
+        console.error('文法有错:', str);
+        log += '文法有错:' + str;
+        return null;
+    }
+
+    if(temp[0].length !== 1){
+        console.error('文法有错', str);
+        log += '文法有错:' + str;
+        return null;
+    }
+
+    if(temp[1].split('|').length !== 1){  // 处理 | 的情况
+        temp = temp.concat(temp[1].split('|'));
+        temp.splice(1,1);
+    }
+
+    subGrammar = [];
+
+    for(let i = 1; i < temp.length; i++){
+        p = {key: temp[0].trim(), value: temp[i].trim(), dot: 0};
+        subGrammar.push(p);
+    }
+    return subGrammar;
+}
+
+function showLog(){  // 简单的日志显示
+
+}
+
+function collectSign(){  // 收集所有的终结符和非终结符
+    for(let g of grammar){
+        for(let c of g['value']){
+            if(isUpper(c)){
+                unterminalSymbols.add(c);
+            }else{
+                terminalSymbols.add(c);
+            }
+        }
+    } //这里好像没有把初始符号S'加入到非终结符集合中
+    console.log('terminalSymbols', terminalSymbols);
+    console.log('unterminalSymbols', unterminalSymbols);
+}
+
+function isUpper(word){  // 是否是终结符
+    const regex = /^[A-Z]$/;
+    return regex.test(word);
+}
+
+
+
+
+
 
 // 显示分析过程
 function showProcess() {
@@ -375,19 +434,7 @@ function handleFOLLOW(){
   console.log(follow);
 }
 
-function collectSign(){  // 收集所有的终结符和非终结符
-  for(let g of grammar){
-    for(let c of g['value']){
-      if(isUpper(c)){
-        unterminalSymbols.add(c);
-      }else{
-        terminalSymbols.add(c);
-      }
-    }
-  }
-  console.log('terminalSymbols', terminalSymbols);
-  console.log('unterminalSymbols', unterminalSymbols);
-}
+
 // 显示项目集规范族的DFA图像
 function showDFA(){
   console.log('showDFA');
@@ -518,42 +565,5 @@ function itemSetToString(item){
 function addLog(str){
   log += str + '\n'
 }
-function showLog(){  // 简单的日志显示
-
-}
-
-function isUpper(word){  // 是否是终结符
-  const regex = /^[A-Z]$/;
-  return regex.test(word);
-}
 
 
-function genGrammar(str){  // 把文法字符串转换成类似结构{'S': 'aBc'}
-  console.log(str);
-  let temp = str.split('->');
-
-  if(temp.length !== 2){
-    console.error('文法有错:', str);
-    log += '文法有错:' + str
-    return null;
-  }
-
-  if(temp[0].length != 1){
-    console.error('文法有错', str);
-    log += '文法有错:' + str
-    return null;
-  }
-
-  if(temp[1].split('|') != 1){  // 处理 | 的情况
-    temp = temp.concat(temp[1].split('|'));
-    temp.splice(1,1);
-  }
-
-  subGrammar = [];
-
-  for(let i = 1; i < temp.length; i++){
-    p = {key: temp[0].trim(), value: temp[i].trim(), dot: 0};
-    subGrammar.push(p);
-  }
-  return subGrammar;
-}

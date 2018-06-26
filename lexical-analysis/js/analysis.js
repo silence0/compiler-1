@@ -6,22 +6,63 @@ let separators = [];  // 分隔符
 
 let sourceCode = "";  // 源代码
 
-let encodeDefines = [];  // 编码定义
+let encodeDefines = [];  // 编码定义 type:" "; key: ; value: ;
+
 let resultEncodes = [];  // 编码结果
 
 let msg = "";
 
 console.log('runing');
 
+function autofill() {
+
+    let keywords2 = "main\n if\n  int\n  char\n  while";  // 关键字
+
+    let operators2 = "=\n  +\n  -\n  *\n  =\n  /\n  <\n  <=\n  >\n  >=\n  ==\n  !=";  // 操作符
+
+    let separators2 = ";\n  {\n  }\n  (\n  )";  // 分隔符
+
+    let sourceCode2 = `
+        main(){
+            int	a;
+            int	b;
+            a = 1;
+            b = 2;
+            if(a==1){
+                b = b + 1;
+            }
+            while(a < b){
+                b = b - 1;
+            }	
+        }
+    `;  // 源代码
+
+    readKeywords(keywords2);
+
+    readOperators(operators2);
+
+    readSeparators(separators2);
+
+    readSrc(sourceCode2);
+
+    geneencodeDefines();// 生成编码定义
+    geneEncodeTable();  // 生成定义表格
+
+}
+
+//读取输入文件
 function handleFile(files, sign){
 	if(files.length<=0)
         return;
 
     let reader = new FileReader();
+
     reader.onload = function(){
     	switch(sign){
-    		case 0: 
+    		case 0:
+    		    console.log(reader.result);
     			readKeywords(reader.result);
+
     			break;
     		case 1:
     			readOperators(reader.result);
@@ -32,8 +73,8 @@ function handleFile(files, sign){
     		case 3:
     			readSrc(reader.result);
     	}
-    	geneencodeDefines();
-    	geneEncodeTable();
+    	geneencodeDefines();// 生成编码定义
+    	geneEncodeTable();  // 生成定义表格
     }
 
     reader.readAsText(files[0]);
@@ -130,13 +171,13 @@ function analyse(){  // 开始分析
 	if(!checkData()){
 		return;
 	}
-	sourceCode = document.getElementById('src').value;
-	msgElement = document.getElementById('msg');
-	msgElement.value = '';
-	resultElement = document.getElementById('result-container');
-	resultElement.innerHTML = '';
-	resultEncodes = [];
-	msg = '';
+	sourceCode = document.getElementById('src').value; //获取源程序
+	msgElement = document.getElementById('msg'); //获取过程信息的表格对象
+	msgElement.value = ''; //清空过程信息表格
+	resultElement = document.getElementById('result-container'); //获取结果信息表格对象
+	resultElement.innerHTML = ''; //清空结果信息表格
+	resultEncodes = []; //
+	msg = ''; //
 
 	let row = 0;
 	let column = 0;
@@ -150,24 +191,24 @@ function analyse(){  // 开始分析
 		column = 0;
 		curWord = '';
 		curChar = line[column];
-		console.log(line)
-		while(column < line.length - 1){
+		console.log(line + "\tlength:" + line.length);
+		while(column < line.length){
 			if(isAlpha(curChar)){  // 匹配字符
 				do{
 					curWord += curChar;
 					column += 1;
 					curChar = line[column];					
-				}while(isAlpha(curChar) || isNum(curChar))
+				}while(isAlpha(curChar) || isNum(curChar));
 
 				if(iskeyWords(curWord)){
 					msg += `row: ${row},col: ${column}  : 匹配到关键字--${curWord}\n`;
-					value = getTypeEncode(2, curWord);
-					resultEncodes.push({'key':curWord, 'value': value, 'internal': '-'})
+					value = getTypeEncode(2, curWord);  //获取单词的种别编码
+					resultEncodes.push({'key':curWord, 'value': value, 'internal': '-'});
 					curWord = '';
 				}else{
-					msg += `row: ${row},col: ${column}  : 匹配到标识符--${curWord}\n`
+					msg += `row: ${row},col: ${column}  : 匹配到标识符--${curWord}\n`;
 					value = getTypeEncode(0);
-					resultEncodes.push({'key':curWord, 'value': value, 'internal': curWord})
+					resultEncodes.push({'key':curWord, 'value': value, 'internal': curWord});
 					curWord = '';
 				}
 
@@ -176,10 +217,10 @@ function analyse(){  // 开始分析
 					curWord += curChar;
 					column += 1;
 					curChar = line[column];
-				}while(isNum(curChar) || curChar == '.')
+				}while(isNum(curChar) || curChar == '.');
 				if(isConstant(curWord)){
 					msg += `row: ${row},col: ${column}  : 匹配到数字--${curWord}\n`;
-					value = getTypeEncode(1);
+					value = getTypeEncode(1); //获取常数的种别编码
 					resultEncodes.push({'key':curWord, 'value': value, 'internal': curWord})
 					curWord = '';
 				}else{
@@ -192,35 +233,52 @@ function analyse(){  // 开始分析
 				do{
 					column += 1;
 					curChar = line[column]
-				}while(!trim(curChar) && curChar)
+				}while(!trim(curChar) && curChar);
 				curWord = ''
 			}else{  // 其他符号
-				do{
-					curWord += curChar;
-					column += 1;
-					curChar = line[column];
-				}while(!isNum(curChar) && !isAlpha(curChar) && curChar)
-				console.log('其他符号',curWord);
-				
-				if(isOperator(curWord)){
-					msg += `row: ${row},col: ${column}  : 匹配到操作符--${curWord}\n`;
-					value = getTypeEncode(2, curWord);
-					resultEncodes.push({'key':curWord, 'value': value, 'internal': '-'})
-					curWord = '';
-				}else if(isSeparator(curWord)){
-					msg += `row: ${row},col: ${column}  : 匹配到分隔符--${curWord}\n`;
-					value = getTypeEncode(2, curWord);
-					resultEncodes.push({'key':curWord, 'value': value, 'internal': '-'})
-					curWord = '';
-				}else if(curWord == '#~'){
-					msg += '匹配到#~, ---词法分析结束----\n';
-					break;
-				}else{
-					msg += `error in row: ${row},col: ${column}, 不合法的符号:${curWord}\n`;
-					alert('源代码存在词法错误');
-					geneMsg();
-					return;
-				}
+				// do{
+				// 	curWord += curChar;
+				// 	column += 1;
+				// 	curChar = line[column];
+				// }while(!isNum(curChar) && !isAlpha(curChar) && curChar);
+
+                curWord += curChar;
+                column += 1;
+                curChar = line[column];
+                console.log('其他符号',curWord,'/tcolumn:',column);
+
+                if(isSeparator(curWord)){
+                    msg += `row: ${row},col: ${column}  : 匹配到分隔符--${curWord}\n`;
+                    value = getTypeEncode(2, curWord); //获取分隔符的种别编码
+                    resultEncodes.push({'key':curWord, 'value': value, 'internal': '-'});
+                    curWord = '';
+                }else {
+                    if(isOperator(curWord)) {
+                        curWord2 = curWord + curChar;
+                        if(isOperator(curWord2)) {
+                            column += 1;
+                            curChar = line[column];
+                            msg += `row: ${row},col: ${column}  : 匹配到操作符--${curWord2}\n`;
+                            value = getTypeEncode(2, curWord2); //获取操作符的种别编码
+                            resultEncodes.push({'key': curWord2, 'value': value, 'internal': '-'});
+                            curWord = '';
+                        }else if(curWord == '#~'){
+                            msg += '匹配到#~, ---词法分析结束----\n';
+                            break;
+                        }else {
+                            msg += `row: ${row},col: ${column}  : 匹配到操作符--${curWord}\n`;
+                            value = getTypeEncode(2, curWord); //获取操作符的种别编码
+                            resultEncodes.push({'key': curWord, 'value': value, 'internal': '-'});
+                            curWord = '';
+                        }
+                    }else{
+                        msg += `error in row: ${row},col: ${column}, 不合法的符号:${curWord}\n`;
+                        alert('源代码存在词法错误');
+                        geneMsg();
+                        return;
+                    }
+                }
+
 			}
 		}
 	}
@@ -298,7 +356,7 @@ function iskeyWords(str){  // 是否是关键字
 }
 
 function isConstant(str){  // 是否是合法数字
-	const regex = /^(\-)?[0-9]+(\.[0-9]+)*$/;
+	const regex = /^(\-)?[0-9]+(\.[0-9]+)?$/;
 	return regex.test(str);
 }
 
